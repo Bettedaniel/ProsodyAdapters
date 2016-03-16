@@ -1,0 +1,7 @@
+*.swp
+FromRemote/
+Non-Code/
+__pycache__/
+directories/
+temporary/
+*.txt

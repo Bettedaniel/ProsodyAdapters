@@ -3,6 +3,7 @@ import os
 import shutil
 from subprocess import call
 import zipfile
+import modules.bcolors as bcolors
 
 def createDirectory(directory):
 	if not op.exists(directory):

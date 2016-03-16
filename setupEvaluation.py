@@ -1,13 +1,14 @@
 from argparse import ArgumentParser
 import modules.bcolors as bcolors
 from modules.cleanTextgrids import createNew, createTextGrid, yankData
+from modules.createDialogueLabels import getData, getTeams, createFileName
 from modules.evaluate import getDictionary
 from modules.evaluate import evaluate_skip_some, smart_evaluate
+from modules.Helpers import createFile, loadWorksheet
 import os
 import os.path as op
 from modules.filesUtility import createDirectory
-from setupTraining import dirParent
-from setupTraining import dirParams
+from setupTraining import dirParent, dirParams, dirDialRe
 import textgrid
 from textgrid import IntervalTier
 from textgrid import TextGrid
@@ -40,11 +41,10 @@ def unzipCorrects(directory):
 		print ("%sExtracted '%s' to '%s'%s" % (bcolors.OKGREEN, directory, target, bcolors.ENDC))
 		return True
 
-def createWordTextGrids(danpass, spreadsheet='monologues.xlsx'):
-	danpass = endOnSlash(danpass)
-	data = yankData(danpass+spreadsheet)
-	monoOrDial = spreadsheet.rsplit('.', 1)[0]
-	target = dirParent + '/WordGrids/'+monoOrDial+'/'
+def createMonoWordTextGrids(danpass):
+	monologues = endOnSlash(danpass) + 'monologues.xlsx'
+	data = yankData(monologues)
+	target = dirParent + '/WordGrids/monologues/'
 	createDirectory(target)
 	i = 0
 	while i < len(data):
@@ -61,6 +61,43 @@ def createWordTextGrids(danpass, spreadsheet='monologues.xlsx'):
 			print ("%sError writing '%s'%s" % (bcolors.FAIL, target+data[i][0]+'.TextGrid', bcolors.ENDC))
 		i = j
 	return 
+
+def createDialWordTextGrids(danpass):
+	dialogues = endOnSlash(danpass) + 'dialogues.xlsx'
+	directory = dirParent+'/'+dirDialRe+'/'
+	if not op.exists(directory):
+		print ("%s'%s' does not exist. Maybe call setupTraining first?%s" % (bcolors.FAIL, directory, bcolors.ENDC))
+		return
+	target = dirParent + '/WordGrids/dialogues/'
+	createDirectory(target)
+	data = getData(loadWorksheet(dialogues))
+	teams = getTeams(directory)
+	
+	textGridData = dict()
+	for team in teams:
+		mono1 = (team[0], team[2])
+		mono2 = (team[1], team[2])
+		both = (len(data[mono1]) > 0 and len(data[mono2]) > 0)
+		if both:
+			merge = [quad for quad in data[mono1]]
+			for quad in data[mono2]:
+				merge.append(quad)
+			textGridData.setdefault(team, merge)
+	
+	TIME, DURATION, WORDS = 0, 1, 2  
+	for team in teams:
+		sortedList = sorted(textGridData[team], key=lambda tup: (tup[TIME], tup[DURATION]))
+		sliceOfData = []
+		fileName = createFileName(team)
+		for quad in sortedList:
+			sliceOfData.append((fileName, quad[TIME], quad[DURATION], quad[WORDS]))
+		txtgrid = createTextGrid(sliceOfData)
+		try:
+			txtgrid.write(target+fileName+'.TextGrid')
+			print ("%swrote '%s'%s" % (bcolors.OKGREEN, target+fileName+'.TextGrid', bcolors.ENDC))
+		except:
+			print ("%sError writing '%s'%s" % (bcolors.FAIL, target+fileName+'.TextGrid', bcolors.ENDC))
+	return
 
 def main():
 	bcolors.init()
@@ -79,9 +116,10 @@ def main():
 	danPass = args.fetch
 	if not danPass is None:
 		didUnzip = unzipCorrects(danPass)
-		print ("%sCreate 'correct' word .TextGrid files.%s" % (bcolors.BOLD, bcolors.ENDC))
-		createWordTextGrids(danPass)
-		# TODO Should also create word TextGrids for the dialogues.
+		print ("%sCreate monologue 'correct' word .TextGrid files.%s" % (bcolors.BOLD, bcolors.ENDC))
+		createMonoWordTextGrids(danPass)
+		print ("%sCreate dialogue 'correct' word .TextGrid files.%s" % (bcolors.BOLD, bcolors.ENDC))
+		createDialWordTextGrids(danPass)
 	directories = args.dirs
 	if not directories is None:
 		available = []

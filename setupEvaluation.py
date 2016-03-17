@@ -13,17 +13,6 @@ import textgrid
 from textgrid import IntervalTier
 from textgrid import TextGrid
 import zipfile
-"""
-def getExtension(file):
-	if not '.' in file:
-		return ''
-	else:
-		return file.rsplit('.', 1)[1]
-def endOnSlash(directory):
-	if directory[len(directory) - 1] == '/':
-		return directory
-	return directory + '/'
-"""
 
 """
 Unzip the danpass folders with the 'correct' TextGrids, and store them in <dirParent>/UnzippedCorrects/

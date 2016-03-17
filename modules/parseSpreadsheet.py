@@ -2,7 +2,7 @@ import xlrd
 import argparse
 import os.path as op
 
-import modules.Helpers
+import modules.Helpers as Helpers
 
 """
 Should change prints to logger actions.

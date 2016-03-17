@@ -46,14 +46,19 @@ def createGrid(directory, spreadsheet, target):
 	return True
 
 def main():
+	bcolors.init()
 	argparser = ArgumentParser(description="Create the dialogues grid.")
 	argparser.add_argument('-d', '--dialogues', help='Path to folder with dialogue .wav files.')
 	argparser.add_argument('-c', '--corpus', help='Path to the danpass corpus.')
 
 	args = argparser.parse_args()
-	finished = createGrid(args.dialogues, args.corpus+'/dialogues.xlsx', './gridFiles/')
-	if (finished):
-		print ("%sFinished.%s" % (bcolors.OKGREEN, bcolors.ENDC))
+	if not args.dialogues is None and not args.corpus is None:
+		finished = createGrid(args.dialogues, args.corpus+'/dialogues.xlsx', './gridFiles/')
+		if (finished):
+			print ("%sFinished.%s" % (bcolors.OKGREEN, bcolors.ENDC))
+		return
+	print ("%sArgument(s) missing.%s" % (bcolors.WARNING, bcolors.ENDC))
+	
 
 if __name__ == "__main__":
 	main()

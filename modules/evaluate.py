@@ -27,7 +27,6 @@ def smart_evaluate(first_clean, second_clean, closeness=0.5):
 	endCorrect, endIncorrect = 0, 0
 	durCorrect, durIncorrect = 0, 0
 
-
 	while (i < len(tier1) and j < len(tier2)):
 		interval1 = tier1[i]
 		interval2 = tier2[j]

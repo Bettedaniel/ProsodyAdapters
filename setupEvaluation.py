@@ -7,24 +7,27 @@ from modules.evaluate import evaluate_skip_some, smart_evaluate
 from modules.Helpers import createFile, loadWorksheet
 import os
 import os.path as op
-from modules.filesUtility import createDirectory
+from modules.filesUtility import createDirectory, endOnSlash, getExtension
 from setupTraining import dirParent, dirParams, dirDialRe
 import textgrid
 from textgrid import IntervalTier
 from textgrid import TextGrid
 import zipfile
-
+"""
 def getExtension(file):
 	if not '.' in file:
 		return ''
 	else:
 		return file.rsplit('.', 1)[1]
-
 def endOnSlash(directory):
 	if directory[len(directory) - 1] == '/':
 		return directory
 	return directory + '/'
+"""
 
+"""
+Unzip the danpass folders with the 'correct' TextGrids, and store them in <dirParent>/UnzippedCorrects/
+"""
 def unzipCorrects(directory):
 	if not op.exists(directory):
 		print ("%s'%s' does not exist.%s" % (bcolors.FAIL, directory, bcolors.ENDC))
@@ -102,9 +105,6 @@ def createDialWordTextGrids(danpass):
 def main():
 	bcolors.init()
 	argparser = ArgumentParser(description="Setup textgrids for testing.")
-#	argparser.add_argument('Textgrid directories', metavar='P', type=str, nargs='+', help='Path to a directory with .TextGrid files that need cleaning.')
-
-#	argparser.add_argument('-t', '--t', type=str, default='words', help='Tier to fix.')
 	argparser.add_argument('-f', '--fetch', type=str, help='Path to danpass set.')
 
 	argparser.add_argument('-d', '--dirs', nargs=2, action='append', help="Path to directory with .TextGrid files, and the tier name to fix.")
@@ -148,6 +148,9 @@ def main():
 
 	return 0
 
+"""
+Available contains tuples of size 2 (despite the quad name), and each of these tuples contain two paths to folders containing .TextGrid files. We then compare every name matching .TextGrid file from one folder to the one in the other folder.
+"""
 def compareAll(available, closeness=0.02):
 	dictionary = getDictionary(dirParent + '/' + dirParams + '/dictionaryDKMapped1.dict')
 	for quad in available:
@@ -167,6 +170,9 @@ def compareAll(available, closeness=0.02):
 		print ("%s\nvs.\n%s" % (quad[0], quad[1]))
 		print ("%sAverage result=%.4f%s" % (bcolors.OKBLUE, (total / float(amount)), bcolors.ENDC))
 
+"""
+Get all file names of files with the extension 'extension'.
+"""
 def getWithExtension(directory, extension):
 	result = []
 	for subdir, dirs, files in os.walk(directory):
@@ -175,8 +181,6 @@ def getWithExtension(directory, extension):
 			if ext == extension:
 				result.append(file)
 	return result
-
-
 
 """
 Available is a list of tuples (sourceDirectory, tierName)
@@ -192,11 +196,17 @@ def cleanAll(available):
 					if ext == 'TextGrid':
 						doCleanUp(tup[0], file, tup[1], tup[0]+TARGET)
 
+"""
+Clean up the TextGrid file 'fileName' in directory 'sourceDirectory' and create a new clean .TextGrid file with the same file name in 'targetDirectory'.
+"""
 def doCleanUp(sourceDirectory, fileName, tierName, targetDirectory):
 	txtgrid = TextGrid.fromFile(sourceDirectory+fileName)
-	cleanTxtgrid = createNew(txtgrid, tierName, False)	
+	cleanTxtgrid = createNew(txtgrid, tierName)	
 	cleanTxtgrid.write(targetDirectory+fileName)
 
+"""
+Create a new directory as 'path/CLEANED/' and return it.
+"""
 def createDirectoryWrapper(path):
 	new_directory = ''
 	if path[len(path)-1] == '/':

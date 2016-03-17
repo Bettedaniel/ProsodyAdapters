@@ -78,3 +78,7 @@ def check_same(source, target):
 					same = False
 	return same
 
+def endOnSlash(directory):
+	if directory[len(directory) - 1] == '/':
+		return directory
+	return directory + '/'

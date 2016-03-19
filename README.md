@@ -7,7 +7,7 @@ Adapters to adapt the danpass corpus data to fit with the prosodylab-alignment s
 ## Language
 Everything is implemented using python version 3.4.3.
 
-## 
+## Running the program 
 In order to set up the project call:
 python3 setupTraining.py -a "path to aligner" -d "path to danpass corpus" -p "training set size in percent"
 Example:

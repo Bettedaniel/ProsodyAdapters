@@ -134,15 +134,12 @@ def makeArgparser():
 	argparser.add_argument('-p', '--p', type=int, help='Training set size in percent. Eg. 60 is 60 percent training set size.')
 	return argparser
 
-def main():
+def main(aligner_path, corpus_path, training_size):
 	bcolors.init()
-	argparser = makeArgparser()
 
-	args = argparser.parse_args()
-
-	aligner_path = args.a
-	corpus_path = args.d
-	training_size = args.p
+#	aligner_path = args.a
+#	corpus_path = args.d
+#	training_size = args.p
 	# Path should lead to a folder. So we want path to end with '/'.
 	if aligner_path[len(aligner_path) - 1] != '/':
 		aligner_path = aligner_path + '/'
@@ -289,4 +286,6 @@ def main():
 	print ("%sReady for training.%s" % (bcolors.OKGREEN, bcolors.ENDC))
 
 if __name__ == "__main__":
-	main()
+	argparser = makeArgparser()
+	args = argparser.parse_args()
+	main(args.a, args.d, args.p)

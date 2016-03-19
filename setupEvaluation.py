@@ -91,51 +91,6 @@ def createDialWordTextGrids(danpass):
 			print ("%sError writing '%s'%s" % (bcolors.FAIL, target+fileName+'.TextGrid', bcolors.ENDC))
 	return
 
-def main():
-	bcolors.init()
-	argparser = ArgumentParser(description="Setup textgrids for testing.")
-	argparser.add_argument('-f', '--fetch', type=str, help='Path to danpass set.')
-
-	argparser.add_argument('-d', '--dirs', nargs=2, action='append', help="Path to directory with .TextGrid files, and the tier name to fix.")
-
-	argparser.add_argument('-c', '--comp', nargs=2, action='append', help='Path to two .TextGrid directories which we will compare.')
-
-	args = argparser.parse_args()
-
-	danPass = args.fetch
-	if not danPass is None:
-		didUnzip = unzipCorrects(danPass)
-		print ("%sCreate monologue 'correct' word .TextGrid files.%s" % (bcolors.BOLD, bcolors.ENDC))
-		createMonoWordTextGrids(danPass)
-		print ("%sCreate dialogue 'correct' word .TextGrid files.%s" % (bcolors.BOLD, bcolors.ENDC))
-		createDialWordTextGrids(danPass)
-	directories = args.dirs
-	if not directories is None:
-		available = []
-		for dir in directories:
-			dir[0] = endOnSlash(dir[0])
-			tup = tuple(dir)
-			if op.exists(tup[0]):
-				available.append(tup)
-			else:
-				print ("%s'%s' does not exist.%s" % (bcolors.FAIL, tup[0], bcolors.ENDC))
-		print (available)
-		cleanAll(available)
-	compares = args.comp
-	if not compares is None:
-		available = []
-		for quad in compares:
-			quad[0] = endOnSlash(quad[0])
-			quad[1] = endOnSlash(quad[1])
-			quadTup = tuple(quad)
-			if op.exists(quadTup[0]) and op.exists(quadTup[1]):
-				available.append(quadTup)
-			else:
-				print ("%s'%s' or '%s' does not exist.%s" % (bcolors.FAIL, quadTup[0], quadTup[1], bcolors.ENDC))
-		print (available)
-		compareAll(available)
-
-	return 0
 
 """
 Available contains tuples of size 2 (despite the quad name), and each of these tuples contain two paths to folders containing .TextGrid files. We then compare every name matching .TextGrid file from one folder to the one in the other folder.
@@ -206,5 +161,61 @@ def createDirectoryWrapper(path):
 	createDirectory(new_directory)
 	return new_directory
 
+
+def main(danPass, directories, compares):
+	bcolors.init()
+#	argparser = ArgumentParser(description="Setup textgrids for testing.")
+#	argparser.add_argument('-f', '--fetch', type=str, help='Path to danpass set.')
+#
+#	argparser.add_argument('-d', '--dirs', nargs=2, action='append', help="Path to directory with .TextGrid files, and the tier name to fix.")
+#
+#	argparser.add_argument('-c', '--comp', nargs=2, action='append', help='Path to two .TextGrid directories which we will compare.')
+#
+#	args = argparser.parse_args()
+
+#	danPass = args.fetch
+	if not danPass is None:
+		didUnzip = unzipCorrects(danPass)
+		print ("%sCreate monologue 'correct' word .TextGrid files.%s" % (bcolors.BOLD, bcolors.ENDC))
+		createMonoWordTextGrids(danPass)
+		print ("%sCreate dialogue 'correct' word .TextGrid files.%s" % (bcolors.BOLD, bcolors.ENDC))
+		createDialWordTextGrids(danPass)
+#	directories = args.dirs
+	if not directories is None:
+		available = []
+		for dir in directories:
+			dir[0] = endOnSlash(dir[0])
+			tup = tuple(dir)
+			if op.exists(tup[0]):
+				available.append(tup)
+			else:
+				print ("%s'%s' does not exist.%s" % (bcolors.FAIL, tup[0], bcolors.ENDC))
+		print (available)
+		cleanAll(available)
+#	compares = args.comp
+	if not compares is None:
+		available = []
+		for quad in compares:
+			quad[0] = endOnSlash(quad[0])
+			quad[1] = endOnSlash(quad[1])
+			quadTup = tuple(quad)
+			if op.exists(quadTup[0]) and op.exists(quadTup[1]):
+				available.append(quadTup)
+			else:
+				print ("%s'%s' or '%s' does not exist.%s" % (bcolors.FAIL, quadTup[0], quadTup[1], bcolors.ENDC))
+		print (available)
+		compareAll(available)
+
+	return 0
+
 if __name__ == "__main__":
-	main()
+	argparser = ArgumentParser(description="Setup textgrids for testing.")
+	argparser.add_argument('-f', '--fetch', type=str, help='Path to danpass set.')
+
+	argparser.add_argument('-d', '--dirs', nargs=2, action='append', help="Path to directory with .TextGrid files, and the tier name to fix.")
+
+	argparser.add_argument('-c', '--comp', nargs=2, action='append', help='Path to two .TextGrid directories which we will compare.')
+
+	args = argparser.parse_args()
+
+	main(args.fetch, args.dirs, args.comp)

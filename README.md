@@ -7,7 +7,7 @@ Adapters to adapt the danpass corpus data to fit with the prosodylab-alignment s
 ## Language
 Everything is implemented using python version 3.4.3.
 
-## Running the program 
+## Running the program(s) 
 In order to set up the project call:
 python3 setupTraining.py -a "path to aligner" -d "path to danpass corpus" -p "training set size in percent"
 Example:
@@ -25,3 +25,6 @@ python3 setupEvaluation.py -d "Path to directory with TextGrid files" "tier name
 For two directories compare performance between all .TextGrid files with the same names. Always compares the first tier. If run on cleaned .TextGrid directory then there will only be one tier.
 python3 setupEvaluation.py -c  "path to directory one" "path to directory two"
 
+The file createDialogueGrid.py will create a file for each dialogues file where every utterance (uninterrupted sequence of word by a speaker) is transcribed with timings and who uttered it.
+To run it:
+python3 createDialogueGrid.py -d "Path to folder with dialogue files" -c "path to danpass corpus"

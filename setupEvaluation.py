@@ -4,6 +4,7 @@ from modules.cleanTextgrids import createNew, createTextGrid, yankData
 from modules.createDialogueLabels import getData, getTeams, createFileName
 from modules.evaluate import getDictionary
 from modules.evaluate import evaluate_skip_some, smart_evaluate
+from modules.graphics import blockDiagram
 from modules.Helpers import createFile, loadWorksheet
 import os
 import os.path as op
@@ -96,6 +97,8 @@ def createDialWordTextGrids(danpass):
 Available contains tuples of size 2 (despite the quad name), and each of these tuples contain two paths to folders containing .TextGrid files. We then compare every name matching .TextGrid file from one folder to the one in the other folder.
 """
 def compareAll(available, closeness=0.02):
+	results = []
+	names = []
 	dictionary = getDictionary(dirParent + '/' + dirParams + '/dictionaryDKMapped1.dict')
 	for quad in available:
 		list1 = getWithExtension(quad[0], 'TextGrid')
@@ -108,11 +111,14 @@ def compareAll(available, closeness=0.02):
 				second = TextGrid.fromFile(quad[1]+file)
 #				result = evaluate_skip_some(first, second, dictionary, closeness)
 				result = smart_evaluate(first, second, closeness)
+				results.append(result)
+				names.append(file)
 				print ("-----------\n%s\n%s\n%sResult=%.4f%s\n-----------" % (quad[0]+file, quad[1]+file, bcolors.OKGREEN, result, bcolors.ENDC))
 				total = total + result
 				amount = amount + 1
 		print ("%s\nvs.\n%s" % (quad[0], quad[1]))
 		print ("%sAverage result=%.4f%s" % (bcolors.OKBLUE, (total / float(amount)), bcolors.ENDC))
+	return results, names
 
 """
 Get all file names of files with the extension 'extension'.
@@ -204,7 +210,8 @@ def main(danPass, directories, compares):
 			else:
 				print ("%s'%s' or '%s' does not exist.%s" % (bcolors.FAIL, quadTup[0], quadTup[1], bcolors.ENDC))
 		print (available)
-		compareAll(available)
+		results, names = compareAll(available)
+		blockDiagram(ratios=results, names=names, graphName='results', overwrite=True, show=True)
 
 	return 0
 

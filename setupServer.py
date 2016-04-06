@@ -1,10 +1,8 @@
 from argparse import ArgumentParser
 import os
 import platform
-import serverHelpers.getPip
 from serverHelpers.versions import Ubuntu
 from subprocess import Popen, PIPE
-import wget
 import zipfile
 
 HEADER = '\033[95m'
@@ -21,23 +19,25 @@ def getExtension(path):
 		return None
 	return path.rsplit(".", 1)[1]
 
-def runProcess(arguments=[], cwd="."):
+def runProcess(arguments=[], cwd=".", shell=False, env=None):
 	stdout, stderr = "", ""
 	try:
-		p = Popen(arguments, stdout=PIPE, stderr=PIPE, cwd=cwd)
+		p = Popen(arguments, stdout=PIPE, stderr=PIPE, cwd=cwd, shell=shell, env=env)
+		print ("%sRan process with arguments '%s' successfully!%s" % (OKGREEN, arguments, ENDC))
 		stdout, stderr = p.communicate()
-		print ("%sRan process with arguments '%s' successfully!%s" % OKGREEN, arguments, ENDC)
 	except:
-		print ("%sRunning process with arguments '%s' failed.%s" % FAIL, arguments, ENDC)	
+		print ("%sRunning process with arguments '%s' failed.%s" % (FAIL, arguments, ENDC))
+		stdout, stderr = p.communicate()
 	return stdout, stderr
 
-def unzip(filename):
-	zipped = zipfile.ZipFile(filename)
-	zipped.extractall()
+#def unzip(filename):
+#	zipped = zipfile.ZipFile(filename)
+#	zipped.extractall()
 
-def download(url="https://github.com/Bettedaniel/ProsodyAdapters/archive/master.zip"):
-	filename = wget.download(url)
-	return filename
+#def download(url="https://github.com/prosodylab/Prosodylab-Aligner/archive/master.zip"):
+#	import wget
+#	filename = wget.download(url)
+#	return filename
 
 # Make it find the packed file itself.
 def unpackHTK():
@@ -50,10 +50,10 @@ def unpackHTK():
 		if 'HTK' in file:
 			ext = getExtension(file)
 			if ext == 'gz':
-				stdout, stderror = runProcess(["tar", "-xvzf", file])
+				stdout, stderror = runProcess(["tar", "-xvzf", file], cwd="../")
 				return True
 			elif ext == 'tar':
-				stdout, stderror = runProcess(["tar", "-xvf", file])
+				stdout, stderror = runProcess(["tar", "-xvf", file], cwd="../")
 				return True
 			else:
 				print ("%sCannot unpack compressed format with extension '%s'.%s" % (FAIL, ext, ENDC))
@@ -67,7 +67,7 @@ def setup(version):
 	stdout, stderr = runProcess(version.upgrade())
 	stdout, stderr = runProcess(version.install("build-essential"))
 	stdout, stderr = runProcess(version.install("g++"))
-	getPip.main()
+	stdout, stderr = runProcess(["sudo", "python3", "getPip.py"], cwd="serverHelpers/")
 	stdout, stderr = runProcess(version.install("python3-numpy"))
 	stdout, stderr = runProcess(version.install("python3-scipy"))
 	stdout, stderr = runProcess(["sudo", "pip3", "install", "pyyaml"])
@@ -81,11 +81,10 @@ def setup(version):
 	else:
 		print ("%sFailed unpacking HTK.%s" % (FAIL, ENDC))
 	htkDir = "../htk"
-	stdout, stderr = runProcess(["export", "CPPFLAGS=-UPHNALG"], cwd=htkDir)
-	stdout, stderr = runProcess(["./configure", "--disable-hlmtools", "--disable-hslab"], cwd=htkDir)
-	stdout, stderr = runProcess(["make", "clean"], cwd=htkDir)
-	stdout, stderr = runProcess(["make", "-j4", "all"], cwd=htkDir)
-	stdout, stderr = runProcess(["sudo", "make", "-j4", "install"], cwd=htkDir)
+	os.environ["CPPFLAGS"] = "-UPHNALG"
+	stdout, stderr = runProcess(["make", "clean"], cwd=htkDir, shell=True, env=os.environ)
+	stdout, stderr = runProcess(["make", "-j4", "all"], cwd=htkDir, shell=True, env=os.environ)
+	stdout, stderr = runProcess(["sudo", "make", "-j4", "install"], cwd=htkDir, shell=True, env=os.environ)
 	
 def detectSystem():
 	print (os.name)

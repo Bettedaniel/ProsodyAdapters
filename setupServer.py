@@ -42,8 +42,12 @@ def unzip(filename):
 	zipped.extractall(path=findDestination(filename))
 
 def download(url="https://github.com/prosodylab/Prosodylab-Aligner/archive/master.zip", dest="master.zip"):
-	with urllib.request.urlopen(url) as response, open(dest, "wb") as out:
-		shutil.copyfileobj(response, out)
+	try:
+		with urllib.request.urlopen(url) as response, open(dest, "wb") as out:
+			shutil.copyfileobj(response, out)
+		print ("%sSuccessfully downloaded '%s' into '%s'.%s" % (OKGREEN, url, dest, ENDC))
+	except:
+		print ("%sFailure while downloading '%s' into '%s'.%s" % (FAIL, url, dest, ENDC))
 	return dest
 
 # Make it find the packed file itself.
@@ -103,5 +107,5 @@ def detectSystem():
 
 if __name__ == "__main__":
 #	detectSystem()
-#	setup(Ubuntu())
+	setup(Ubuntu())
 	getProsodylab()

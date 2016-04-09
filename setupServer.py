@@ -71,7 +71,8 @@ def unpackHTK():
 	return False
 
 def getProsodylab():
-	unzip(download(dest="../master.zip"))
+	if not os.path.isfile("../master.zip"):
+		unzip(download(dest="../master.zip"))
 
 def setup(version):
 #	name = download()

@@ -64,7 +64,7 @@ def unzipAll(source, target):
 
 def resampleAll(source, target, program):
 	print ("%sResampling '%s' into '%s'.%s" % (bcolors.BOLD, source, target, bcolors.ENDC))
-	call([program, '-s', '16000', '-r', source, '-w', target])
+	call(["bash", program, '-s', '16000', '-r', source, '-w', target])
 
 def createMonoLabels(monoSheet, target):
 	worksheets = [loadWorksheet(monoSheet)]

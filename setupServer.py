@@ -99,7 +99,7 @@ def setup(version):
 	stdout, stderr = runProcess(["make", "clean"], cwd=htkDir, shell=True, env=os.environ)
 	stdout, stderr = runProcess(["make", "-j4", "all"], cwd=htkDir, shell=True, env=os.environ)
 	stdout, stderr = runProcess(["sudo", "make", "-j4", "install"], cwd=htkDir, shell=True, env=os.environ)
-	
+
 def detectSystem():
 	print (os.name)
 	print (platform.system())

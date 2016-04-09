@@ -2,7 +2,9 @@ from argparse import ArgumentParser
 import os
 import platform
 from serverHelpers.versions import Ubuntu
+import shutil
 from subprocess import Popen, PIPE
+import urllib.request
 import zipfile
 
 HEADER = '\033[95m'
@@ -30,14 +32,19 @@ def runProcess(arguments=[], cwd=".", shell=False, env=None):
 		stdout, stderr = p.communicate()
 	return stdout, stderr
 
-#def unzip(filename):
-#	zipped = zipfile.ZipFile(filename)
-#	zipped.extractall()
+def findDestination(filename):
+	if not "/" in filename:
+		return "."
+	return filename.rsplit("/", 1)[0]
 
-#def download(url="https://github.com/prosodylab/Prosodylab-Aligner/archive/master.zip"):
-#	import wget
-#	filename = wget.download(url)
-#	return filename
+def unzip(filename):
+	zipped = zipfile.ZipFile(filename)
+	zipped.extractall(path=findDestination(filename))
+
+def download(url="https://github.com/prosodylab/Prosodylab-Aligner/archive/master.zip", dest="master.zip"):
+	with urllib.request.urlopen(url) as response, open(dest, "wb") as out:
+		shutil.copyfileobj(response, out)
+	return dest
 
 # Make it find the packed file itself.
 def unpackHTK():
@@ -58,6 +65,9 @@ def unpackHTK():
 			else:
 				print ("%sCannot unpack compressed format with extension '%s'.%s" % (FAIL, ext, ENDC))
 	return False
+
+def getProsodylab():
+	unzip(download(dest="../master.zip"))
 
 def setup(version):
 #	name = download()
@@ -93,4 +103,5 @@ def detectSystem():
 
 if __name__ == "__main__":
 #	detectSystem()
-	setup(Ubuntu())
+#	setup(Ubuntu())
+	getProsodylab()

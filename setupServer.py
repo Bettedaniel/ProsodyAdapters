@@ -77,12 +77,11 @@ def getProsodylab():
 def setup(version):
 #	name = download()
 #	unzip(name)
-	pip3Install = ["sudo", "pip3", "install"]
 	stdout, stderr = runProcess(version.update())
 	stdout, stderr = runProcess(version.upgrade())
+	stdout, stderr = runProcess(version.install("python3-pip"))
 	stdout, stderr = runProcess(version.install("build-essential"))
 	stdout, stderr = runProcess(version.install("g++"))
-	stdout, stderr = runProcess(["sudo", "python3", "getPip.py"], cwd="serverHelpers/")
 	stdout, stderr = runProcess(version.install("python3-numpy"))
 	stdout, stderr = runProcess(version.install("python3-scipy"))
 	stdout, stderr = runProcess(["sudo", "pip3", "install", "pyyaml"])

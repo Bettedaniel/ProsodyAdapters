@@ -51,20 +51,20 @@ def download(url="https://github.com/prosodylab/Prosodylab-Aligner/archive/maste
 	return dest
 
 # Make it find the packed file itself.
-def unpackHTK():
+def unpackHTK(cwd="../"):
 	subdir, dirs, files = next(os.walk(os.pardir))
 	for dir in dirs:
 		if 'HTK' in dir:
-			print ("%sAlready unpacked '%s'.%s" % (OKBLUE, dir, ENDC))
-			return
+			print ("%sAlready unpacked '%s'.%s" % (WARNING, dir, ENDC))
+			return False
 	for file in files:
 		if 'HTK' in file:
 			ext = getExtension(file)
 			if ext == 'gz':
-				stdout, stderror = runProcess(["tar", "-xvzf", file], cwd="../")
+				stdout, stderror = runProcess(["tar", "-xvzf", file], cwd=cwd)
 				return True
 			elif ext == 'tar':
-				stdout, stderror = runProcess(["tar", "-xvf", file], cwd="../")
+				stdout, stderror = runProcess(["tar", "-xvf", file], cwd=cwd)
 				return True
 			else:
 				print ("%sCannot unpack compressed format with extension '%s'.%s" % (FAIL, ext, ENDC))
@@ -74,31 +74,41 @@ def getProsodylab():
 	if not os.path.isfile("../master.zip"):
 		unzip(download(dest="../master.zip"))
 
-def setup(version):
-#	name = download()
-#	unzip(name)
+def appendToBashrc(string):
+	with open("~/.bashrc", "a") as bash:
+		bash.write("#Prosodylab can find htk.\n")
+		bash.write(string)
+
+def installBasis(version):
 	stdout, stderr = runProcess(version.update())
 	stdout, stderr = runProcess(version.upgrade())
-	stdout, stderr = runProcess(version.install("python3-pip"))
 	stdout, stderr = runProcess(version.install("build-essential"))
+	stdout, stderr = runProcess(version.install("libx11-dev"))
 	stdout, stderr = runProcess(version.install("g++"))
+
+def installProsody(version):
 	stdout, stderr = runProcess(version.install("python3-numpy"))
 	stdout, stderr = runProcess(version.install("python3-scipy"))
+	stdout, stderr = runProcess(version.install("python3-pip"))
 	stdout, stderr = runProcess(["sudo", "pip3", "install", "pyyaml"])
 	stdout, stderr = runProcess(["sudo", "pip3", "install", "textgrid"])
 	stdout, stderr = runProcess(["sudo", "pip3", "install", "xlrd"])
-	stdout, stderr = runProcess(version.install("libc6-dev-i386"))
 	stdout, stderr = runProcess(version.install("sox"))
-	unpacked = unpackHTK()	
+
+def setupBetaHTK(version):
+	installBasis(version)
+	installProsody(version)
+	unpacked = unpackHTK("../")	
 	if unpacked:
 		print ("%sSuccessfully unpacked HTK.%s" % (OKGREEN, ENDC))
 	else:
 		print ("%sFailed unpacking HTK.%s" % (FAIL, ENDC))
-	htkDir = "../htk"
-	os.environ["CPPFLAGS"] = "-UPHNALG"
-	stdout, stderr = runProcess(["make", "clean"], cwd=htkDir, shell=True, env=os.environ)
-	stdout, stderr = runProcess(["make", "-j4", "all"], cwd=htkDir, shell=True, env=os.environ)
-	stdout, stderr = runProcess(["sudo", "make", "-j4", "install"], cwd=htkDir, shell=True, env=os.environ)
+	htkDir = "../htk/"
+	stdout, stderr = runProcess(["make", "-f", "MakefileCPU", "all"], cwd=htkDir+"HTKLib/")
+	stdout, stderr = runProcess(["make", "-f", "MakefileCPU", "all"], cwd=htkDir+"HTKTools/")
+	stdout, stderr = runProcess(["make", "-f", "MakefileCPU", "install"], cwd=htkDir+"HTKTools/")
+	appendToBashrc("export PATH=$PATH:/home/ubuntu/htk/bin.cpu/")
+	stdout, stderr = runProcess(["source", "~/.bashrc"], shell=True)
 
 def detectSystem():
 	print (os.name)
@@ -107,5 +117,5 @@ def detectSystem():
 
 if __name__ == "__main__":
 #	detectSystem()
-	setup(Ubuntu())
-	getProsodylab()
+	setupBetaHTK(Ubuntu())
+#	getProsodylab()

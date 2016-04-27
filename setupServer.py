@@ -79,9 +79,9 @@ def getProsodylab():
 		unzip(download(dest="../master.zip"))
 
 def appendToBashrc(string):
-	file = os.path.join(os.path.expanduser('~'), "/.bashrc")
 	try:
-		stdout, stderr = runProcess(["echo", string, ">>", file])
+		stdout, stderr = runProcess(["echo " + string + " >> " + os.path.expanduser("~/.bashrc")], shell=True)
+		stdout1, stderr1 = runProcess(["source " + os.path.expanduser("~/.bashrc")], shell=True)
 		print ("%sSuccesfully added '%s' to .bashrc.%s" % (OKGREEN, string, ENDC))
 	except:
 		print ("%sFailed adding '%s' to .bashrc.%s" % (FAIL, string, ENDC))
@@ -115,7 +115,6 @@ def setupBetaHTK(version):
 	stdout, stderr = runProcess(["make", "-f", "MakefileCPU", "all"], cwd=htkDir+"HTKTools/")
 	stdout, stderr = runProcess(["make", "-f", "MakefileCPU", "install"], cwd=htkDir+"HTKTools/")
 	appendToBashrc("export PATH=$PATH:/home/ubuntu/htk/bin.cpu/")
-	stdout, stderr = runProcess(["source", "~/.bashrc"], shell=True)
 
 def detectSystem():
 	print (os.name)

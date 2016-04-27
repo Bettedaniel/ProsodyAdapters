@@ -115,6 +115,8 @@ def setupBetaHTK(version):
 	stdout, stderr = runProcess(["make", "-f", "MakefileCPU", "all"], cwd=htkDir+"HTKTools/")
 	stdout, stderr = runProcess(["make", "-f", "MakefileCPU", "install"], cwd=htkDir+"HTKTools/")
 	appendToBashrc("export PATH=$PATH:/home/ubuntu/htk/bin.cpu/")
+	print ("%s%sChanged made to bashrc. In order for them to take effect please reconnect to the server.%s" % (BOLD, WARNING, ENDC))
+	print ("%s%sAs an alternative to reconnecting run:\nsource ~/.bashrc%s" % (BOLD, WARNING, ENDC))
 
 def detectSystem():
 	print (os.name)

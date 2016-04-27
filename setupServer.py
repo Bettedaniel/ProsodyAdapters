@@ -7,6 +7,10 @@ from subprocess import Popen, PIPE
 import urllib.request
 import zipfile
 
+"""
+To be truly cross platform all the path stuff should be replaced with calls to the 'os' library (E.g. os.path.join()).
+"""
+
 HEADER = '\033[95m'
 OKBLUE = '\033[94m'
 OKGREEN = '\033[92m'
@@ -75,11 +79,14 @@ def getProsodylab():
 		unzip(download(dest="../master.zip"))
 
 def appendToBashrc(string):
-	with open("~/.bashrc", "a") as bash:
-		bash.write("#Prosodylab can find htk.\n")
-		bash.write(string)
+	file = os.path.join(os.path.expanduser('~'), "/.bashrc")
+	try:
+		stdout, stderr = runProcess(["echo", string, ">>", file])
+		print ("%sSuccesfully added '%s' to .bashrc.%s" % (OKGREEN, string, ENDC))
+	except:
+		print ("%sFailed adding '%s' to .bashrc.%s" % (FAIL, string, ENDC))
 
-def installBasis(version):
+def installBasics(version):
 	stdout, stderr = runProcess(version.update())
 	stdout, stderr = runProcess(version.upgrade())
 	stdout, stderr = runProcess(version.install("build-essential"))
@@ -96,7 +103,7 @@ def installProsody(version):
 	stdout, stderr = runProcess(version.install("sox"))
 
 def setupBetaHTK(version):
-	installBasis(version)
+	installBasics(version)
 	installProsody(version)
 	unpacked = unpackHTK("../")	
 	if unpacked:

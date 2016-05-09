@@ -77,6 +77,8 @@ def unpackHTK(cwd="../"):
 def getProsodylab():
 	if not os.path.isfile("../master.zip"):
 		unzip(download(dest="../master.zip"))
+	else:
+		print ("%s%s'../master.zip' already exists.%s" % (BOLD, WARNING, ENDC))
 
 def appendToBashrc(string):
 	try:
@@ -118,6 +120,24 @@ def setupBetaHTK(version):
 	print ("%s%sChanged made to bashrc. In order for them to take effect please reconnect to the server.%s" % (BOLD, WARNING, ENDC))
 	print ("%s%sAs an alternative to reconnecting run:\nsource ~/.bashrc%s" % (BOLD, WARNING, ENDC))
 
+def setupStableHTK(version):
+	installBasics(version)
+	installProsody(version)
+	unpacked = unpackHTK("../")
+	if unpacked:
+		print ("%sSuccessfully unpacked HTK.%s" % (OKGREEN, ENDC))
+	else:
+		print ("%sFailed unpacking HTK.%s" % (FAIL, ENDC))
+	htkDir = "../htk/"
+	getProsodylab()
+	os.environ['CPPFLAGS'] = '-UPHNALG'
+	stdout, stderr = runProcess(["./configure", "--disable-hlmtools", "--disable-hslab"], cwd=htkDir, env=os.environ)
+	stdout, stderr = runProcess(["make", "clean"], cwd=htkDir, env=os.environ)
+	stdout, stderr = runProcess(["make", "-j4", "all"], cwd=htkDir, env=os.environ)
+	stdout, stderr = runProcess(["sudo", "make", "-j4", "install"], cwd=htkDir, env=os.environ)
+	print ("%s%sFinished installing.%s" % (BOLD, OKGREEN, ENDC))
+
+
 def detectSystem():
 	print (os.name)
 	print (platform.system())
@@ -125,5 +145,5 @@ def detectSystem():
 
 if __name__ == "__main__":
 #	detectSystem()
-	setupBetaHTK(Ubuntu())
-#	getProsodylab()
+#	setupBetaHTK(Ubuntu())
+	setupStableHTK(Ubuntu())

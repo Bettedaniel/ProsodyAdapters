@@ -122,6 +122,7 @@ def setupBetaHTK(version):
 
 def setupStableHTK(version):
 	installBasics(version)
+	stdout, stderr = runProcess(["sudo", "apt-get", "install", "libc6-dev-i386", "-yy"])
 	installProsody(version)
 	unpacked = unpackHTK("../")
 	if unpacked:

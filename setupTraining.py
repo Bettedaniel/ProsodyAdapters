@@ -62,9 +62,9 @@ def unzipAll(source, target):
 				else:
 					print ("%sAll files were already unzipped in '%s'%s" % (bcolors.OKBLUE, file, bcolors.ENDC))
 
-def resampleAll(source, target, program):
-	print ("%sResampling '%s' into '%s'.%s" % (bcolors.BOLD, source, target, bcolors.ENDC))
-	call(["bash", program, '-s', '16000', '-r', source, '-w', target])
+def resampleAll(source, target, program, rate=16000):
+	print ("%sResampling '%s' into '%s' at '%s' Hz.%s" % (bcolors.BOLD, source, target, str(rate), bcolors.ENDC))
+	call(["bash", program, '-s', str(rate), '-r', source, '-w', target])
 
 def createMonoLabels(monoSheet, target):
 	worksheets = [loadWorksheet(monoSheet)]
@@ -132,10 +132,16 @@ def makeArgparser():
 	argparser.add_argument('-a', '--a', help='Path to the folder containing the prosodylab-aligner.')
 	argparser.add_argument('-d', '--d', help='Path to the DanPass corpus.')
 	argparser.add_argument('-p', '--p', type=int, help='Training set size in percent. Eg. 60 is 60 percent training set size.')
+
+	argparser.add_argument('-s', '--s', type=int, help='Resample rate in Hz for the files. Excluding the argument, rate will be 16000 Hz')
+
 	return argparser
 
-def main(aligner_path, corpus_path, training_size):
+def main(aligner_path, corpus_path, training_size, sample_rate):
 	bcolors.init()
+	rate = 16000
+	if sample_rate is not None:
+		rate = int(sample_rate)
 
 #	aligner_path = args.a
 #	corpus_path = args.d
@@ -174,11 +180,11 @@ def main(aligner_path, corpus_path, training_size):
 	alreadySampledMono = check_same(temp+'/monologues/', dirParent+'/'+dirMonoRe)
 	alreadySampledDial = check_same(temp+'/dialogues/', dirParent+'/'+dirDialRe)
 	if not alreadySampledMono:
-		resampleAll(temp+'/monologues/', dirParent + '/' + dirMonoRe, aligner_path + 'resample.sh')
+		resampleAll(temp+'/monologues/', dirParent + '/' + dirMonoRe, aligner_path + 'resample.sh', rate)
 	else:
 		print ("%s'%s' appears already resampled.%s" % (bcolors.OKBLUE, dirParent+'/'+dirMonoRe, bcolors.ENDC))
 	if not alreadySampledDial:
-		resampleAll(temp+'/dialogues/', dirParent + '/' + dirDialRe, aligner_path + 'resample.sh')
+		resampleAll(temp+'/dialogues/', dirParent + '/' + dirDialRe, aligner_path + 'resample.sh', rate)
 	else:
 		print ("%s'%s' appears already resampled.%s" % (bcolors.OKBLUE, dirParent+'/'+dirDialRe, bcolors.ENDC))
 
@@ -288,4 +294,4 @@ def main(aligner_path, corpus_path, training_size):
 if __name__ == "__main__":
 	argparser = makeArgparser()
 	args = argparser.parse_args()
-	main(args.a, args.d, args.p)
+	main(args.a, args.d, args.p, args.s)

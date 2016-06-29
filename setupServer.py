@@ -138,7 +138,6 @@ def setupStableHTK(version):
 	stdout, stderr = runProcess(["sudo", "make", "-j4", "install"], cwd=htkDir, env=os.environ)
 	print ("%s%sFinished installing.%s" % (BOLD, OKGREEN, ENDC))
 
-
 def detectSystem():
 	print (os.name)
 	print (platform.system())

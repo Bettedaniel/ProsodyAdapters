@@ -133,7 +133,7 @@ def makeArgparser():
 	argparser.add_argument('-d', '--d', help='Path to the DanPass corpus.')
 	argparser.add_argument('-p', '--p', type=int, help='Training set size in percent. Eg. 60 is 60 percent training set size.')
 
-	argparser.add_argument('-s', '--s', type=int, help='Resample rate in Hz for the files. Excluding the argument, rate will be 16000 Hz')
+	argparser.add_argument('-s', '--s', type=int, help='Resample rate in Hz for the files. Excluding the argument, rate will be 16000 Hz.')
 
 	return argparser
 

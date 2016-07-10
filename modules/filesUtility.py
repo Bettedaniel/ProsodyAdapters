@@ -30,6 +30,12 @@ def removeFolder(target):
 	else:
 		print ("'%s' does not exist." % (target))
 
+
+def removePath(f):
+	if not "/" in f:
+		return f
+	return f.rsplit('/', 1)[1]
+
 """
 Check if 'directory' contains a file with the extension 'extension'.
 """

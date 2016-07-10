@@ -1,10 +1,15 @@
 from argparse import ArgumentParser
+import modules.filesUtility as filesUtility
+from modules.Helpers import createFile
 import modules.bcolors as bcolors
 from modules.Helpers import extractWord, findColumn, loadWorksheet, makeMappingFromFileToPath
 from pydub import AudioSegment
 import os
 import os.path as op
 import xlrd
+
+# We want this file size approximately, in Bytes.
+approxFileSize = 5000000
 
 def extractMonologueData(sheets):
 	transcriptions = dict()
@@ -34,20 +39,82 @@ def extractMonologueData(sheets):
 def splitMonologues(danpass, monos):
 	sheet = loadWorksheet(op.join(danpass, "monologues.xlsx"))
 	words, transcriptions, phonetics = extractMonologueData([sheet])
-			
+	targetDirectory = "directories/SplitMonos/"
+	filesUtility.createDirectory(targetDirectory)
 	for key in transcriptions:
 		file = op.join(monos, key+".wav")
+		if not op.isfile(file):
+			continue
 		sound = AudioSegment.from_wav(file)
 		size = op.getsize(file)
-		print ("File = %s, size = %s Bytes" % (file, size))
-		print ("%s MBytes" % (size / float(1000000)))
-		for triple in transcriptions[key]:
-			print (triple)
-	
-"""
-	We have all the puzzle pieces. Just need to split intelligently.
-"""	
+		splitTimes = []
+		if (size <= 1.5 * approxFileSize):
+			print ("File too small for meaningful split.")
+		else:
+			numberOfSplits = int(size / approxFileSize)
+			soundDuration = len(sound)
+	#		print ("Number of splits: %s" % (numberOfSplits))
+			approxLength = int(soundDuration / (numberOfSplits+1))
+			splitTimes = splitSingleMono(approxLength, transcriptions[key])
+		if (len(splitTimes) == 0):
+			# No splits.
+			print ("No splits.")
+			sound.export(targetDirectory + key + ".wav", format="wav")
+		else:
+			previousSplit = 0
+			segments = []
+			for splitPoint in splitTimes:
+				mSec = int(round(splitPoint * 1000.0))
+				segments.append(sound[previousSplit:mSec])
+				previousSplit = mSec
+			segments.append(sound[previousSplit:len(sound)])
+			for i in range(0, len(segments)):
+				segments[i].export(targetDirectory + key + str(i) + ".wav", format="wav")
+		createLabels(targetDirectory+key, splitTimes, transcriptions[key])
 
+def createLabels(fileName, splitTimes, triples):
+	currentSplit = 0
+	label = ""
+	previousEnd = 0
+	for triple in triples:
+		start = triple[1]
+		end = triple[1] + triple[2]
+		if len(splitTimes) > currentSplit and splitTimes[currentSplit] <= start and splitTimes[currentSplit] >= previousEnd:
+			writeFile(fileName+str(currentSplit)+".lab", label[1:])
+					
+			currentSplit += 1
+			label = ""
+		label = label + " " + (" ".join(triple[0]).upper())
+		previousEnd = end
+
+#	print (currentSplit)
+	if currentSplit == 0:
+		writeFile(fileName+".lab", label[1:])
+	else:
+		writeFile(fileName+str(currentSplit)+".lab", label[1:])
+	
+def writeFile(filePath, text):
+	with open(filePath, "w+") as f:
+		f.write(text)
+	
+
+def splitSingleMono(approxLength, triples):
+	endOfNext = approxLength / float(1000)
+	toSplitTimes = []
+	previousEnd = 0
+	for triple in triples:
+		start = triple[1]
+		end = triple[1] + triple[2]
+		if (start >= endOfNext):
+			if canSplit(previousEnd, start):
+				splitPoint = previousEnd + ((start - previousEnd) / 2.0)
+				toSplitTimes.append(splitPoint)
+				endOfNext += (approxLength / float(1000))
+		previousEnd = end
+	return toSplitTimes
+		
+def canSplit(previousEnd, currentStart):
+	return (currentStart - previousEnd) > 0.005
 
 
 def main(danpass, monos, dials):

@@ -94,6 +94,7 @@ def installBasics(version):
 	stdout, stderr = runProcess(version.install("build-essential"))
 	stdout, stderr = runProcess(version.install("libx11-dev"))
 	stdout, stderr = runProcess(version.install("g++"))
+	stdout, stderr = runProcess(["sudo", "pip3", "install", "pydub"])
 
 def installProsody(version):
 	stdout, stderr = runProcess(version.install("python3-numpy"))

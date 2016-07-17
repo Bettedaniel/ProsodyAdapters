@@ -21,7 +21,6 @@ def getParts(file_='bla/bla/0_og_1_kort_2.wav'):
 		print ("Not all integers: (%s, %s, %s)" % (split[0], split[2], split[4]))
 
 def getTeams(path):
-#	print (glob.glob(path+'/*.wav'))
 	files = glob.glob(path+'/*.wav')
 	teams = set()
 	for file_ in files:	
@@ -52,8 +51,6 @@ def getData(sheet):
 		phones = sheet.cell(row, lydskrift_column).value
 		sTime = float(sheet.cell(row, time_column).value)
 		dTime = float(sheet.cell(row, duration_column).value)
-#		print ("@@@@@@@\n%s\n%s\n%s\n@@@@@@@" % (fileName, ortoWord, phones))
-#		print (getPersonAndMap(fileName))
 		
 		# If the word exists and it can be pronounced.
 		if posWord and phones:
@@ -73,31 +70,6 @@ def main():
 	args = argparser.parse_args()
 
 	createLabels(args.s, args.d, './dialogueLabs/')
-#	teams = getTeams(args.d)
-#	sheet = loadWorksheet(args.s)
-#	data = getData(sheet)
-#	merged = dict()
-#	for trip in teams:
-#		tup1 = (trip[0], trip[2])
-#		tup2 = (trip[1], trip[2])
-#		if (len(data[tup1]) > 0 and len(data[tup2]) > 0):
-#			temp = [quad for quad in data[tup1]]
-#			for quad in data[tup2]:
-#				temp.append(quad)
-#			merged.setdefault(trip, temp)
-#	
-#	for trip in merged:
-#		list_ = sorted(merged[trip], key=lambda tup: (tup[0], tup[1]))
-#		name = createFileName(trip)
-#		label = ""
-#		i = 0
-#		for (a, b, word, d) in list_:
-#			if (i == 0):
-#				label = label + word.upper()
-#			else:
-#				label = label + " " + word.upper()
-#			i = i + 1
-#		createFile('./dialogueLabs/'+name, '.lab', [label], True)
 	return 0
 
 def createLabels(sheet_path, wavs, target):

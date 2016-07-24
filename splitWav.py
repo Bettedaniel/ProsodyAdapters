@@ -7,10 +7,16 @@ from modules.Helpers import extractWord, findColumn, loadWorksheet, makeMappingF
 from pydub import AudioSegment
 import os
 import os.path as op
+from random import shuffle
+import shutil
 import xlrd
 
 # We want this file size approximately, in Bytes.
 approxFileSize = 5000000
+targetDirectoryDial = "directories/SplitDials/"
+targetDirectoryMono = "directories/SplitMonos/"
+splitTrainDirectory = "directories/allSplitTrain/"
+splitAlignDirectory = "directories/allSplitAlign/"
 
 def extractMonologueData(sheets):
 	transcriptions = dict()
@@ -38,8 +44,7 @@ def extractMonologueData(sheets):
 	return words, transcriptions, phonetics
 
 def splitDialogues(danpass, dials):
-	targetDirectory = "directories/SplitDials/"
-	filesUtility.createDirectory(targetDirectory)
+	filesUtility.createDirectory(targetDirectoryDial)
 	teams = createDialogueLabels.getTeams(dials)
 	sheet = loadWorksheet(op.join(danpass, "dialogues.xlsx"))
 	data = createDialogueLabels.getData(sheet)
@@ -69,7 +74,7 @@ def splitDialogues(danpass, dials):
 
 		if len(splitTimes) == 0:
 			print ("%sNo splits.%s" % (bcolors.OKBLUE, bcolors.ENDC))
-			sound.export(targetDirectory + name + ".wav", format="wav")
+			sound.export(targetDirectoryDial + name + ".wav", format="wav")
 		else:
 			previousSplit = 0
 			segments = []
@@ -82,15 +87,14 @@ def splitDialogues(danpass, dials):
 				app = ""
 				if len(segments) > 1:
 					app = "(" + str(i) + ")"
-				segments[i].export(targetDirectory+name+app+".wav", format="wav")
-		createSplitDialogueLabels(targetDirectory + name, splitTimes, list_)
+				segments[i].export(targetDirectoryDial+name+app+".wav", format="wav")
+		createSplitDialogueLabels(targetDirectoryDial + name, splitTimes, list_)
 	
 
 def splitMonologues(danpass, monos):
 	sheet = loadWorksheet(op.join(danpass, "monologues.xlsx"))
 	words, transcriptions, phonetics = extractMonologueData([sheet])
-	targetDirectory = "directories/SplitMonos/"
-	filesUtility.createDirectory(targetDirectory)
+	filesUtility.createDirectory(targetDirectoryMono)
 	for key in transcriptions:
 		file = op.join(monos, key+".wav")
 		if not op.isfile(file):
@@ -109,7 +113,7 @@ def splitMonologues(danpass, monos):
 		if (len(splitTimes) == 0):
 			# No splits.
 			print ("%sNo splits.%s" % (bcolors.OKBLUE, bcolors.ENDC))
-			sound.export(targetDirectory + key + ".wav", format="wav")
+			sound.export(targetDirectoryMono + key + ".wav", format="wav")
 		else:
 			previousSplit = 0
 			segments = []
@@ -119,8 +123,8 @@ def splitMonologues(danpass, monos):
 				previousSplit = mSec
 			segments.append(sound[previousSplit:len(sound)])
 			for i in range(0, len(segments)):
-				segments[i].export(targetDirectory + key + "(" + str(i) + ").wav", format="wav")
-		createLabels(targetDirectory+key, splitTimes, transcriptions[key])
+				segments[i].export(targetDirectoryMono + key + "(" + str(i) + ").wav", format="wav")
+		createLabels(targetDirectoryMono+key, splitTimes, transcriptions[key])
 
 def createSplitDialogueLabels(fileName, splitTimes, quadruples):
 	triples = []
@@ -186,21 +190,93 @@ def splitSingleMono(approxLength, triples):
 def canSplit(previousEnd, currentStart):
 	return (currentStart - previousEnd) > 0.005
 
+def splitDirectory(directory, percent):
+	if not op.exists(directory):
+		print ("%s'%s' does not exist.\n\tHave files been split yet?%s" % (bcolors.FAIL, directory, bcolors.ENDC))
+		return
+	subdir, dirs, files = next(os.walk(directory))
+	wavs = []
+	labs = []
+	for file in files:
+		ext = filesUtility.getExtension(file)
+		if ext == 'wav':
+			wavs.append(file)
+		elif ext == 'lab':
+			labs.append(file)
+	assert(len(wavs) == len(labs))
+	shuffle(wavs)
+	amount = round(len(wavs) * (percent / 100.0))
 
-def main(danpass, monos, dials):
-	bcolors.init()
+	trainWavs = []
+	alignWavs = []
+	trainLabs = []
+	alignLabs = []
+
+	added = 0
+	for wav in wavs:
+		name = filesUtility.removeExtension(wav)
+		if (added < amount):
+			trainWavs.append(wav)
+			trainLabs.append(name+".lab")
+			added += 1
+		else:
+			alignWavs.append(wav)
+			alignLabs.append(name+".lab")
+	
+	if (len(trainWavs) == 0):
+		print ("%sNo .wav files in training set.%s" % (bcolors.WARNING, bcolors.ENDC))
+	if (len(alignWavs) == 0):
+		print ("%sNo .wav files in alignment set.%s" % (bcolors.WARNING, bcolors.ENDC))
+	if (len(trainLabs) == 0):
+		print ("%sNo .lab files in training set.%s" % (bcolors.WARNING, bcolors.ENDC))
+	if (len(alignLabs) == 0):
+		print ("%sNo .lab files in alignment set.%s" % (bcolors.WARNING, bcolors.ENDC))
+
+	copyAll(trainWavs, directory, splitTrainDirectory)
+	printCopyMessage("trainWavs", directory, splitTrainDirectory)
+	copyAll(trainLabs, directory, splitTrainDirectory)
+	printCopyMessage("trainLabs", directory, splitTrainDirectory)
+	copyAll(alignWavs, directory, splitAlignDirectory)
+	printCopyMessage("alignWavs", directory, splitAlignDirectory)
+	copyAll(alignLabs, directory, splitAlignDirectory)
+	printCopyMessage("alignLabs", directory, splitAlignDirectory)
+
+def copyAll(sourceList, sourceDirectory, targetDirectory):
+	for file in sourceList:
+		shutil.copy(op.join(sourceDirectory, file), targetDirectory)
+
+def printCopyMessage(listName, sourceDir, targetDir):
+	print ("%sName list: '%s' copied to '%s' from '%s'.%s" % (bcolors.OKGREEN, listName, targetDir, sourceDir, bcolors.ENDC))
+
+def addCorrectLabel(label, list, wavs):
+	baseName = filesUtility.removeExtension(label)
+	extension = "wav"
+	if (baseName+"."+extension in wavs):
+		label.append(list)
+
+def createSplitSetsDirectories():
+	filesUtility.createDirectory(splitTrainDirectory)
+	filesUtility.createDirectory(splitAlignDirectory)
+
+def main(danpass, monos, dials, percent):
 	if monos is not None:
 		splitMonologues(danpass, monos)
 	if dials is not None:
 		splitDialogues(danpass, dials)
+	if percent is not None:
+		createSplitSetsDirectories()
+		splitDirectory(targetDirectoryMono, percent)
+		splitDirectory(targetDirectoryDial, percent)
 
 
 if __name__ == "__main__":
+	bcolors.init()
 	argparser = ArgumentParser(description='Split .wav files.')
 	argparser.add_argument('-d', help='Path to the DanPass corpus.')
 	argparser.add_argument('-mono', help='Path to folder with to split monologue sound files.')
 	argparser.add_argument('-dial', help='Path to folder with to split dialogue sound files.')
+	argparser.add_argument('-p', type=int, help='Size in percent of training set.')
 	
 	args = argparser.parse_args()
-	main(args.d, args.mono, args.dial)
+	main(args.d, args.mono, args.dial, args.p)
 

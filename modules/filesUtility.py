@@ -88,3 +88,10 @@ def endOnSlash(directory):
 	if directory[len(directory) - 1] == '/':
 		return directory
 	return directory + '/'
+
+# Creates the directory if none existent.
+def deleteDirectoryAndRecreate(directory):
+	if (op.exists(directory)):
+		shutil.rmtree(directory)
+		print ("%sRemoved '%s'%s" % (bcolors.WARNING, directory, bcolors.ENDC))
+	createDirectory(directory)

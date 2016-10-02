@@ -49,8 +49,8 @@ def main():
 	bcolors.init()
 	argparser = ArgumentParser(description='Do k-fold cross validation.')
 	argparser.add_argument('-k', '--k', help='The k in k-fold cross validation. Defaults to 10.', default=10)
-	argparser.add_argument('-m', '--m', help='Path to the folder with the split wav and lab monologues.')
-	argparser.add_argument('-d', '--d', help='Path to the folder with the split wav and lab dialogues.')
+	argparser.add_argument('-m', '--m', help='Path to the folder with the wav and lab monologues.')
+	argparser.add_argument('-d', '--d', help='Path to the folder with the wav and lab dialogues.')
 	
 	args = argparser.parse_args()
 	k = args.k
@@ -81,9 +81,9 @@ def main():
 				continue
 			rest.extend(samples[j])
 		createDirectoryAndCopyData(addCorrespondingLabFiles(rest), os.path.join(crossValidationTraining, iteration))
-	
-	# Every part of the k-fold validation gets their own folder. Just in case data wants to be kept.
-	# Now train and evaluate each iteration and average the score..
+
+	# Every part of the k-fold validation gets their own folder. Just in case data wants to be kept. Introduces a large degree of replication of data. Might take up a lot of harddisk space.
+	# Now train and evaluate each iteration and average the score...
 
 if __name__ == "__main__":
 	main()

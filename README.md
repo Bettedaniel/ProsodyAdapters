@@ -22,7 +22,6 @@ python3 setupTraining.py -a Prosodylab-Aligner/ -d DanPass/ -p 60
 After setting up the project, the prosodylab aligner can be used to train on the files in directories/MonoTrain/, directories/DialTrain or directories/AllTrain. Dictionary and .yaml file will be in directories/Parameters.
 
 To evaluate performance run:
-To fetch the needed data.
 python3 setupEvaluation.py -f "path to danpass corpus"
 
 To fix .TextGrid files in a selected tier. Fixes danish characters and fixes some white space differences. (Creates new fixed files, does not overwrite old)
